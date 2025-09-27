@@ -1,12 +1,18 @@
 import { Request, Response } from "express";
+import { Op,WhereOptions } from "sequelize";
 import Client from "../models/ClientModel";
 
 export class clientController {
     static createClient = async (req: Request, res: Response) => {
         try {
-            const { idNumber } = req.body
+            const { idNumber, email } = req.body
             const clientExist = await Client.findOne({
-                where:{idNumber,isActive:1}
+                where: {
+                    [Op.or]: [
+                        { idNumber },
+                        { email }
+                    ]
+                }
             })
             if (clientExist) {
                 res.status(400).json({ message: "cliente ya existe" })
@@ -22,14 +28,33 @@ export class clientController {
 
     static getClients = async (req: Request, res: Response) => {
         try {
+            const { isActive, search } = req.query
+            let whereClause: any = { isActive: "1" }
+            if (isActive === "0") {
+                whereClause.isActive = "0"
+            } else if (isActive === "1") {
+                whereClause.isActive = "1"
+            }
+
+            if (search) {
+                whereClause[Op.or] = [
+                    { fullname: { [Op.like]: `%${search}%` } },
+                    { idNumber: { [Op.like]: `%${search}%` } },
+                    { email: { [Op.like]: `%${search}%` } },
+                    { companyName: { [Op.like]: `%${search}%` } },
+                ]
+            }
+
             const clients = await Client.findAll({
+                where: whereClause,
                 order: [["createdAt", "DESC"]],
                 limit: 10,
-            });
-            return res.json(clients);
+            })
+
+            return res.json(clients)
         } catch (error) {
-            console.error("Error al listar clientes:", error);
-            return res.status(500).json({ message: "Error al listar clientes" });
+            console.error("Error al listar clientes:", error)
+            return res.status(500).json({ message: "Error al listar clientes" })
         }
     }
 
@@ -50,6 +75,21 @@ export class clientController {
     static updateClient = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
+            const { idNumber, email } = req.body;
+            // Verificar si ya existe otro cliente con mismo correo o identificación
+            const clientExist = await Client.findOne({
+                where: {
+                    [Op.or]: [
+                        { idNumber },
+                        { email }
+                    ],
+                    id: { [Op.ne]: id }//excluye al cliente que estoy editando
+                }
+            });
+
+            if (clientExist) {
+                return res.status(400).json({ message: "Ya existe un cliente con ese documento o correo" });
+            }
 
             const [updated] = await Client.update(req.body, {
                 where: { id },
@@ -58,12 +98,14 @@ export class clientController {
             if (updated === 0) {
                 return res.status(404).json({ message: "Cliente no encontrado" });
             }
+
             return res.status(200).json({ message: "Cliente actualizado" });
+
         } catch (error) {
             console.error("Error al actualizar cliente:", error);
-            return res.status(500).json({ message: "Error al actualizar cliente" });
+            return res.status(500).json({ message: "Error al actualizar el cliente" });
         }
-    }
+    };
 
     static toggleClientStatus = async (req: Request, res: Response) => {
         try {
@@ -80,21 +122,6 @@ export class clientController {
         } catch (error) {
             console.error("Error al cambiar estado del cliente:", error);
             return res.status(500).json({ message: "Error al cambiar estado del cliente" });
-        }
-    }
-    static getListClients = async (req: Request, res: Response) => {
-        try {
-            const clients = await Client.findAll({
-                order: [["createdAt", "DESC"]],
-                limit: 10,
-                where:{
-                    isActive:1
-                }
-            });
-            return res.json(clients);
-        } catch (error) {
-            console.error("Error al listar clientes:", error);
-            return res.status(500).json({ message: "Error al listar clientes" });
         }
     }
 }
