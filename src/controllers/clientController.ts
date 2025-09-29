@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Op,WhereOptions } from "sequelize";
+import { Op, WhereOptions } from "sequelize";
 import Client from "../models/ClientModel";
 
 export class clientController {
@@ -44,7 +44,6 @@ export class clientController {
                     { companyName: { [Op.like]: `%${search}%` } },
                 ]
             }
-
             const clients = await Client.findAll({
                 where: whereClause,
                 order: [["createdAt", "DESC"]],
