@@ -75,14 +75,13 @@ export class clientController {
         try {
             const { id } = req.params;
             const { idNumber, email } = req.body;
-            // Verificar si ya existe otro cliente con mismo correo o identificación
             const clientExist = await Client.findOne({
                 where: {
                     [Op.or]: [
                         { idNumber },
                         { email }
                     ],
-                    id: { [Op.ne]: id }//excluye al cliente que estoy editando
+                    id: { [Op.ne]: id }//exclude the client I'm editing
                 }
             });
 
@@ -121,6 +120,28 @@ export class clientController {
         } catch (error) {
             console.error("Error al cambiar estado del cliente:", error);
             return res.status(500).json({ message: "Error al cambiar estado del cliente" });
+        }
+    }
+    static getClientToQuote = async (req: Request, res: Response) => {
+        try {
+            const { search } = req.params
+            let whereClause: any = {}
+            if (search) {
+                whereClause[Op.or] = [
+                    { idNumber: +search },
+                    { email: search },
+                ]
+            }
+            const client = await Client.findOne({
+                where: whereClause,
+                order: [["createdAt", "DESC"]],
+            })
+            if(!client) return res.status(400).json({message:"Cliente no encontrado"})
+            
+            return res.json(client)
+        } catch (error) {
+            console.error("Error al consultar el cliente:", error)
+            return res.status(500).json({ message: "Error al consultar el cliente" })
         }
     }
 }
