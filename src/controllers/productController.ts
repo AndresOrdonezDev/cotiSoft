@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Product from "../models/ProductModel";
+import { Op } from "sequelize";
 
 export class productController {
     static createProduct = async (req: Request, res: Response) => {
@@ -14,7 +15,21 @@ export class productController {
     }
     static getProducts = async (req: Request, res: Response) => {
         try {
+            const { isActive, search } = req.query
+            let whereClause: any = { isActive: "1" }
+            if (isActive === "0") {
+                whereClause.isActive = "0"
+            } else if (isActive === "1") {
+                whereClause.isActive = "1"
+            }
+            if (search) {
+                whereClause[Op.or] = [
+                    { name: { [Op.like]: `%${search}%` } },
+                    { description: { [Op.like]: `%${search}%` } },
+                ]
+            }
             const products = await Product.findAll({
+                where: whereClause,
                 order: [["createdAt", "DESC"]],
                 limit: 10
             });
@@ -40,7 +55,7 @@ export class productController {
     static updateProduct = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            
+
             const [updated] = await Product.update(req.body, {
                 where: { id },
             });
@@ -65,7 +80,8 @@ export class productController {
             product.isActive = !product.isActive;
             await product.save();
             return res.status(200).json({
-                message: `se ${product.isActive ? 'activó':'desactivó'} el producto`})
+                message: `se ${product.isActive ? 'activó' : 'desactivó'} el producto`
+            })
         } catch (error) {
             console.error("Error al cambiar estado del producto:", error);
             return res.status(500).json({ message: "Error al cambiar estado del producto" });
