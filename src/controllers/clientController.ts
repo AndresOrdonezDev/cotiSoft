@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Op, WhereOptions } from "sequelize";
+import { Op} from "sequelize";
 import Client from "../models/ClientModel";
 
 export class clientController {
