@@ -140,7 +140,7 @@ export class clientController {
             
             return res.json(client)
         } catch (error) {
-            console.error("Error al consultar el cliente:", error)
+            console.error("Error al consultar el cliente: ", error)
             return res.status(500).json({ message: "Error al consultar el cliente" })
         }
     }
