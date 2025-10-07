@@ -28,8 +28,8 @@ export class quoteProductTransaction {
 
       //confirm transaction
       await t.commit();
-
-      return res.status(200).json({message: "Cotización creada"});
+      
+      return res.status(200).json({message: "Cotización creada",quoteId:quote.id});
     } catch (error) {
       await t.rollback();
       console.error("Error al crear cotización con productos:", error);
