@@ -8,5 +8,6 @@ const router = Router()
 router.post('/',quoteProductTransaction.createQuoteWithProducts)
 router.get('/',quoteController.getQuotes)
 router.get('/:id',quoteProductController.getProductsByQuote)
+router.get('/generate-pdf/:id',quoteProductController.generatePdfQuote)
 
 export default router

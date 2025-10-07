@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import PDFDocument from "pdfkit"
 import QuoteProduct from "../models/QuoteProductModel";
 import Product from "../models/ProductModel";
 import Quote from "../models/QuoteModel";
@@ -66,4 +67,30 @@ export class quoteProductController {
       return res.status(500).json({ message: "Error al eliminar producto de cotización" });
     }
   };
+
+  static generatePdfQuote = async (req: Request, res: Response) => {
+    try {
+      const doc = new PDFDocument();
+
+      // Configura headers antes de enviar nada
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", "attachment; filename=cotizacion.pdf");
+
+      // Envía el PDF al cliente
+      doc.pipe(res);
+
+      // Contenido del PDF
+      doc.fontSize(20).text("Cotización de productos", { align: "center" });
+      doc.moveDown();
+      doc.text("Gracias por su interés en nuestros productos.");
+
+      // Finaliza el PDF
+      doc.end();
+
+      // ❌ No pongas aquí ningún res.send()
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Error al generar PDF" });
+    }
+  }
 }
