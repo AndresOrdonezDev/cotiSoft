@@ -18,7 +18,7 @@ export class quoteProductController {
         include: [
           {
             model: Client,
-            attributes: ["id", "fullname", "email"],
+            attributes: ["id", "fullname", "email","companyName","contact"],
           },
           {
             model: QuoteProduct,

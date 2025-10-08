@@ -8,10 +8,10 @@ export class quoteProductTransaction {
     const t = await db.transaction();
     try {
       const { client_id, notes, products, total } = req.body;
-      
+
       // 1. create quote
       const quote = await Quote.create(
-        { client_id, notes,total },
+        { client_id, notes, total },
         { transaction: t }
       );
 
@@ -28,8 +28,8 @@ export class quoteProductTransaction {
 
       //confirm transaction
       await t.commit();
-      
-      return res.status(200).json({message: "Cotización creada",quoteId:quote.id});
+
+      return res.status(200).json({ message: "Cotización creada", quoteId: quote.id });
     } catch (error) {
       await t.rollback();
       console.error("Error al crear cotización con productos:", error);
@@ -38,4 +38,54 @@ export class quoteProductTransaction {
       });
     }
   };
+
+  static updateQuoteWithProducts = async (req: Request, res: Response) => {
+  const t = await db.transaction();
+  try {
+    const { id } = req.params; // ID de la cotización a editar
+    const { client_id, notes, products, total,status } = req.body;
+
+    // 1️⃣ Verificar que la cotización exista
+    const quote = await Quote.findByPk(id);
+    if (!quote) {
+      return res.status(404).json({ message: "Cotización no encontrada" });
+    }
+
+    // 2️⃣ Actualizar la información principal de la cotización
+    await Quote.update(
+      { client_id, notes, total,status },
+      { where: { id }, transaction: t }
+    );
+
+    // 3️⃣ Eliminar los productos actuales asociados a la cotización
+    await QuoteProduct.destroy({
+      where: { quote_id: id },
+      transaction: t,
+    });
+
+    // 4️⃣ Insertar los nuevos productos de la cotización
+    const quoteProductsData = products.map((p: any) => ({
+      quote_id: Number(id),
+      product_id: p.product_id,
+      price: p.price,
+      quantity: p.quantity,
+      tax: p.tax,
+    }));
+
+    await QuoteProduct.bulkCreate(quoteProductsData, { transaction: t });
+
+    // 5️⃣ Confirmar la transacción
+    await t.commit();
+
+    return res
+      .status(200)
+      .json({ message: "Cotización actualizada", quoteId: id });
+  } catch (error) {
+    await t.rollback();
+    console.error("Error al actualizar cotización con productos:", error);
+    return res.status(500).json({
+      message: "Error al actualizar cotización con productos",
+    });
+  }
+};
 }
