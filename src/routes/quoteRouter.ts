@@ -9,5 +9,6 @@ router.post('/',quoteProductTransaction.createQuoteWithProducts)
 router.get('/',quoteController.getQuotes)
 router.get('/:id',quoteProductController.getProductsByQuote)
 router.get('/generate-pdf/:id',quoteProductController.generatePdfQuote)
+router.post('/send-quote-email',quoteProductController.sendQuoteByEmail)
 
 export default router

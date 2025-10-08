@@ -5,6 +5,7 @@ import QuoteProduct from "../models/QuoteProductModel";
 import Product from "../models/ProductModel";
 import Quote from "../models/QuoteModel";
 import Client from "../models/ClientModel";
+import { SendEmailQuote } from "../lib/SendEmail";
 
 export class quoteProductController {
 
@@ -76,7 +77,7 @@ export class quoteProductController {
       const quote = await Quote.findByPk(id, {
         attributes: ["id", "total", "status", "notes", "createdAt"],
         include: [
-          { model: Client, attributes: ["fullname","idNumber", "email","contact","companyName"] },
+          { model: Client, attributes: ["fullname", "idNumber", "email", "contact", "companyName"] },
           {
             model: QuoteProduct,
             attributes: ["price", "quantity", "tax"],
@@ -96,7 +97,7 @@ export class quoteProductController {
       const logoPath = path.join(__dirname, "../public/logo-rec.png");
 
       // === ENCABEZADO ===
-      doc.text(`Fecha: ${new Date(quote.createdAt).toLocaleDateString()}`,{align:'right'});
+      doc.text(`Fecha: ${new Date(quote.createdAt).toLocaleDateString()}`, { align: 'right' });
       doc.moveDown(1);
       doc
         .fontSize(15)
@@ -108,19 +109,19 @@ export class quoteProductController {
       doc.restore();
       doc.moveDown(2);
       doc.fontSize(12);
-      
+
       doc.text(`Cliente: ${quote.client.fullname}`);
       if (quote.client.companyName) doc.text(`Razón Social: ${quote.client.companyName}`);
       doc.text(`Identificación: ${quote.client.idNumber}`);
       doc.text(`Correo: ${quote.client.email}`);
       doc.text(`Contacto: ${quote.client.contact}`);
-      
-      
+
+
       doc.moveDown(2);
 
       // === TABLA ===
       const productsTotalTax = quote.quoteProducts.map(p => {
-        const base = (p.price * p.quantity) / (1 + p.tax / 100) 
+        const base = (p.price * p.quantity) / (1 + p.tax / 100)
         const iva = (p.price * p.quantity) - base
         return { base: base.toFixed(2), iva: iva.toFixed(2) }
       })
@@ -145,14 +146,13 @@ export class quoteProductController {
         })),
       };
 
-      // 👇 Aquí se usa directamente doc.table
       await (doc as any).table(table, {
         prepareHeader: () => doc.font("Helvetica-Bold").fontSize(11),
         prepareRow: (row, i) => doc.font("Helvetica").fontSize(10),
       });
 
       doc.moveDown(2);
-      
+
       doc.font("Helvetica-Bold").fontSize(12);
       doc.text(`SUBTOTAL: $${TotalBase.toLocaleString()}`, { align: "right" });
       doc.moveDown(0.5);
@@ -163,13 +163,13 @@ export class quoteProductController {
 
       doc.font("Helvetica-Bold").fontSize(12);
       doc.text(`TOTAL COTIZACIÓN: $${quote.total.toLocaleString()}`, { align: "right" });
-      
+
       doc.moveDown(2);
 
-      if (quote.notes){
+      if (quote.notes) {
         doc.font("Helvetica").fontSize(12);
         doc.text(`Observaciones: ${quote.notes}`);
-      } 
+      }
       doc.moveDown(2);
       doc.font("Helvetica").fontSize(12);
       doc.text('Atte. REC-Soluciones S.A.S')
@@ -177,11 +177,25 @@ export class quoteProductController {
       doc.text('Correo: recsoluciones@gmail.com')
       doc.text('Calle 2 #a - 23')
       doc.moveDown(1);
-      doc.text('A la espera de una favorable respuesta, agradecemos su interés.',{align:"center"}).fontSize(10)
+      doc.text('A la espera de una favorable respuesta, agradecemos su interés.', { align: "center" }).fontSize(10)
       doc.end();
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Error al generar PDF" });
     }
   };
+
+  static sendQuoteByEmail = async (req: Request, res: Response) => {
+    try {
+      const { id, client,email } = req.body
+      await SendEmailQuote({ id, client,email })
+      return res.status(200).json({ message: "Cotización Enviada" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Error al Enviar la Cotización" });
+    }
+
+  }
 }
+
+
