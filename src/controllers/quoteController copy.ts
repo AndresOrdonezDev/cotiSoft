@@ -7,49 +7,52 @@ export class quoteController {
 
   static getQuotes = async (req: Request, res: Response) => {
     try {
-      const { showState, search } = req.query
-
-      const clientWhere: any = {};
-      clientWhere[Op.or] = [
-        {
-          email: {
-            [Op.like]: `%${search}%`
-          }
-        },
-        {
-          idNumber: {
-            [Op.like]: `%${search}%`
-          }
-        }
-      ]
-      if (showState === "All") {
-        const quotes = await Quote.findAll({
-          order: [["createdAt", "DESC"]],
-          limit: 500,
-          include: [
-            {
-              model: Client,
-              attributes: ["fullname", "contact", "email", "companyName"],
-              where: clientWhere
-            }
-          ],
-        });
-        return res.json(quotes);
+      const { showState, search } = req.query;
+      console.log(search)
+      // Base del filtro principal (estado)
+      const whereClause: any = {};
+      if (showState) {
+        whereClause.status = showState;
       }
+
+      // Condiciones de búsqueda
+      const clientWhere: any = {};
+      if (search) {
+        const searchTerm = String(search).trim();
+
+        // Si la búsqueda es numérica, podría ser el id de la cotización o el documento del cliente
+        if (!isNaN(Number(searchTerm))) {
+          whereClause[Op.or] = [
+            { id: Number(searchTerm) }, // busca por id de cotización
+          ];
+
+          clientWhere[Op.or] = [
+            { contact: { [Op.like]: `%${searchTerm}%` } }, // o identificación del cliente (ajusta el campo si se llama distinto)
+          ];
+        } else {
+          // Si no es numérico, busca por email, nombre o empresa
+          clientWhere[Op.or] = [
+            { email: { [Op.like]: `%${searchTerm}%` } },
+            { fullname: { [Op.like]: `%${searchTerm}%` } },
+            { companyName: { [Op.like]: `%${searchTerm}%` } },
+          ];
+        }
+      }
+
+      // Consulta final
       const quotes = await Quote.findAll({
         order: [["createdAt", "DESC"]],
-        limit: 500,
-        where: {
-          status: showState
-        },
+        limit: 10,
+        where: whereClause,
         include: [
           {
             model: Client,
             attributes: ["fullname", "contact", "email", "companyName"],
-            where: clientWhere
-          }
+            where: Object.keys(clientWhere).length ? clientWhere : undefined, // aplica condición solo si existe
+          },
         ],
       });
+
       return res.json(quotes);
     } catch (error) {
       console.error("Error al listar cotizaciones:", error);

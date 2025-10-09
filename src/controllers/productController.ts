@@ -31,7 +31,7 @@ export class productController {
             const products = await Product.findAll({
                 where: whereClause,
                 order: [["createdAt", "DESC"]],
-                limit: 10
+                limit: 500
             });
             res.json(products);
         } catch (error) {

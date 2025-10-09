@@ -24,7 +24,7 @@ export const authenticate = async (
   next: NextFunction
 ) => {
   const bearer = req.headers.authorization;
-    
+
   if (!bearer) {
     const error = new Error("Usuario no autorizado");
     res.status(500).send(error.message);
@@ -40,21 +40,16 @@ export const authenticate = async (
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    
+
+
     if (typeof decoded === "object" && decoded.id) {
 
       const user = await User.findByPk(decoded.id, {
-        attributes: ["id", "username", "email",'isAdmin'],
+        attributes: ["id", "username", "email", 'isAdmin', 'isActive'],
       });
-      
-      if (user) {
-        req.user = user;
-        next();
-      } else {
-        res.status(500).send("Token no válido");
-        return;
-      }
+      if (!user) return res.status(500).send("Token no válido");
+      req.user = user;
+      next();
     }
   } catch (error) {
     res.status(500).json({ error: "Error al vaidar el token" });

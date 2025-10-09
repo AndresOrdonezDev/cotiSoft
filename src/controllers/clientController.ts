@@ -47,7 +47,7 @@ export class clientController {
             const clients = await Client.findAll({
                 where: whereClause,
                 order: [["createdAt", "DESC"]],
-                limit: 10,
+                limit: 500,
             })
 
             return res.json(clients)

@@ -7,8 +7,7 @@ const SALT_ROUNDS = 10;
 export class authController {
   static createAccount = async (req: Request, res: Response) => {
     try {
-      const { username, email, password, isAdmin} = req.body;
-
+      const { username, email, password, isAdmin } = req.body;
       // Validar campos obligatorios
       if (!username || !email || !password) {
         res.status(400).json({ message: "Todos los campos son obligatorios" });
@@ -68,6 +67,8 @@ export class authController {
         return;
       }
 
+      if (!user.isActive) return res.status(404).json({ message: "Usuario Inactivo" });
+
       // Comparar contraseñas
       const isPasswordValid = await bcrypt.compare(
         password,
@@ -122,4 +123,49 @@ export class authController {
     res.json(req.user)
     return
   }
+  static logout = async (req: Request, res: Response) => {
+    try {
+      req.user.email = "",
+        req.user.id = 0
+      req.user.username = ""
+      res.status(200).json({ message: "Salida segura" });
+      return
+    } catch (error) {
+      console.error("Error logout", error);
+      res.status(500).json({ message: "Error al Cerrar Sesión" });
+      return;
+    }
+  }
+  static getUsers = async (req: Request, res: Response) => {
+    try {
+      const users = await User.findAll({
+        order: [["createdAt", "DESC"]],
+        limit: 200,
+        attributes:["id", "username", "email", 'isAdmin', 'isActive'],
+      })
+      return res.json(users)
+    } catch (error) {
+      console.error("Error al listar usuarios:", error)
+      return res.status(500).json({ message: "Error al listar usuarios" })
+    }
+  }
+  static toggleUserStatus = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const user = await User.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+      // toggle status
+      const newStatus = !user.isActive;
+      await user.update({ isActive: newStatus });
+      return res.status(200).json({ message: `Usuario ${newStatus ? "activado" : "inactivado"}`,});
+    } catch (error) {
+      console.error("Error al cambiar estado del usuario:", error);
+      return res
+        .status(500)
+        .json({ message: "Error al cambiar el estado del usuario" });
+    }
+  };
 }
+

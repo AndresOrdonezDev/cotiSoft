@@ -2,14 +2,15 @@ import { Router } from "express";
 import { quoteProductTransaction } from "../controllers/quoteProductTransaction";
 import { quoteController } from "../controllers/quoteController";
 import { quoteProductController } from "../controllers/quoteProductController";
+import { authenticate } from "../middlewares/auth";
 
 const router = Router()
 
-router.post('/',quoteProductTransaction.createQuoteWithProducts)
-router.get('/',quoteController.getQuotes)
-router.get('/:id',quoteProductController.getProductsByQuote)
+router.post('/',authenticate, quoteProductTransaction.createQuoteWithProducts)
+router.get('/',authenticate,quoteController.getQuotes)
+router.get('/:id',authenticate,quoteProductController.getProductsByQuote)
 router.get('/generate-pdf/:id',quoteProductController.generatePdfQuote)
-router.post('/send-quote-email',quoteProductController.sendQuoteByEmail)
-router.put('/:id',quoteProductTransaction.updateQuoteWithProducts)
-router.post('/update-status/:id', quoteController.toggleQuoteStatus)
+router.post('/send-quote-email',authenticate,authenticate,quoteProductController.sendQuoteByEmail)
+router.put('/:id',authenticate,quoteProductTransaction.updateQuoteWithProducts)
+router.post('/update-status/:id',authenticate, quoteController.toggleQuoteStatus)
 export default router
