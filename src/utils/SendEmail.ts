@@ -5,6 +5,10 @@ type SendEmailQuoteProps = {
   client:string,
   email:string
 }
+type SendEmailTokenProps = {
+  email:string
+  token:string,
+}
 export async function SendEmailQuote({ id, client,email }:SendEmailQuoteProps) {
   const transporter = createTransport(
     process.env.HOST_EMAIL,
@@ -37,6 +41,42 @@ export async function SendEmailQuote({ id, client,email }:SendEmailQuoteProps) {
           font-weight: bold;"
     >
     Descargar Cotización
+    </a>
+      `,
+  });
+}
+export async function SendEmailTokenUser({ email,token }:SendEmailTokenProps) {
+  const transporter = createTransport(
+    process.env.HOST_EMAIL,
+    process.env.PORT_EMAIL,
+    process.env.USER_EMAIL,
+    process.env.PASS_EMAIL
+  );
+  // send email when creating a new appointment
+  await transporter.sendMail({
+    from: "portafolio@ordonezandres.com", // sender address
+    to: `${email}`, // list of receivers
+    subject: `Recuperación de contraseña`, // Subject line
+    text: `Recuperar Contraseña`, // plain text body
+    html: `
+      <p>Has solicitado la recuperación de contraseña para el correo ${email}</p>
+      <p>Recuerda que el token es de un solo uso, si lo pierdes vuelve a generarlo</p>
+      <br/>
+      <a 
+        href='${process.env.FRONTEND_URL}/forgot-password/${email}/${token}'
+        target="_blank" 
+        style="
+          display: inline-block;
+          background-color: #0d9488;
+          color: #ffffff;
+          text-decoration: none;
+          border-radius: 6px;
+          padding: 12px 24px;
+          font-family: Arial, sans-serif;
+          font-size: 14px;
+          font-weight: bold;"
+    >
+    Cambiar Contraseña
     </a>
       `,
   });

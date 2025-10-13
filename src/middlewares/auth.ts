@@ -8,6 +8,7 @@ type IUser = {
   id?: number;
   username: string;
   email: string;
+  isAdmin:boolean;
 };
 
 declare global {
@@ -41,7 +42,6 @@ export const authenticate = async (
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-
     if (typeof decoded === "object" && decoded.id) {
 
       const user = await User.findByPk(decoded.id, {
@@ -52,7 +52,9 @@ export const authenticate = async (
       next();
     }
   } catch (error) {
-    res.status(500).json({ error: "Error al vaidar el token" });
+    res.status(500).json({ error: "Error al validar el token" });
     return;
   }
 };
+
+

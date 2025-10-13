@@ -37,6 +37,11 @@ class Quote extends Model {
     allowNull: true,
   })
   declare notes: string;
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+  })
+  declare createdBy: string;
 }
 
 export default Quote;
