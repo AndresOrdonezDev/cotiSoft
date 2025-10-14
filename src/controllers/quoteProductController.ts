@@ -89,6 +89,7 @@ export class quoteProductController {
         return res.status(404).json({ message: "Cotización no encontrada" });
       }
       //generate Pdf
+    
       await generateQuotePdf({quote, res});
     } catch (error) {
       console.error(error);
