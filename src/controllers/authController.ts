@@ -53,7 +53,6 @@ export class authController {
   static login = async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
-
       // Validar campos obligatorios
       if (!email || !password) {
         res
@@ -61,7 +60,7 @@ export class authController {
           .json({ message: "Correo y contraseña son obligatorios" });
         return;
       }
-
+      
       // Buscar el usuario por email
       const user = await User.findOne({ where: { email } });
       if (!user) {

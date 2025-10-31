@@ -144,4 +144,15 @@ export class clientController {
             return res.status(500).json({ message: "Error al consultar el cliente" })
         }
     }
+
+    static addListEmail = async (req: Request, res: Response)=>{
+        try {
+           const {id} = req.params
+           const {emails} = req.body
+           res.send({id,emails})
+        } catch (error) {
+            console.error("Error al crear la lista de correos del cliente: ", error)
+            return res.status(500).json({ message: "Error al crear la lista de correos del cliente" })
+        }
+    }
 }
