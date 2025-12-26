@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
-import { Op} from "sequelize";
+import { Op } from "sequelize";
 import Client from "../models/ClientModel";
+import EmailClient from "../models/EmailListClient";
 
 export class clientController {
+
     static createClient = async (req: Request, res: Response) => {
         try {
             const { idNumber, email } = req.body
@@ -60,16 +62,25 @@ export class clientController {
     static getClientById = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            const clientFound = await Client.findByPk(id);
+            const clientFound = await Client.findByPk(id, {
+                include: [
+                    {
+                        model: EmailClient,
+                        as: "emailList"
+                    }
+                ]
+            });
+
             if (!clientFound) {
                 return res.status(404).json({ message: "Cliente no encontrado" });
             }
+
             return res.json(clientFound);
         } catch (error) {
             console.error("Error al obtener cliente:", error);
             return res.status(500).json({ message: "Error al obtener cliente" });
         }
-    }
+    };
 
     static updateClient = async (req: Request, res: Response) => {
         try {
@@ -136,23 +147,99 @@ export class clientController {
                 where: whereClause,
                 order: [["createdAt", "DESC"]],
             })
-            if(!client) return res.status(400).json({message:"Cliente no encontrado"})
-            
+            if (!client) return res.status(400).json({ message: "Cliente no encontrado" })
+
             return res.json(client)
         } catch (error) {
             console.error("Error al consultar el cliente: ", error)
             return res.status(500).json({ message: "Error al consultar el cliente" })
         }
     }
-
-    static addListEmail = async (req: Request, res: Response)=>{
+    //add email to client
+    static addListEmail = async (req: Request, res: Response) => {
         try {
-           const {id} = req.params
-           const {emails} = req.body
-           res.send({id,emails})
+            const { id } = req.params;
+            const { email } = req.body;
+            // if client exist  
+            const client = await Client.findByPk(id);
+            if (!client) {
+                return res.status(404).json({ message: "Cliente no encontrado" });
+            }
+
+            // validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !email.trim() || !emailRegex.test(email.trim())) {
+                return res.status(400).json({ message: "Debe enviar un email válido" });
+            }
+
+            // check if email already exists for this client
+            const existingEmail = await EmailClient.findOne({
+                where: {
+                    client_id: +id,
+                    email: email.trim().toLowerCase()
+                }
+            });
+
+            if (existingEmail) {
+                return res.status(400).json({ message: "Este correo ya está registrado para este cliente" });
+            }
+
+            // create email
+            await EmailClient.create({
+                client_id: +id,
+                email: email.trim().toLowerCase()
+            });
+
+            return res.status(201).json({ message: "Correo agregado correctamente" });
+
         } catch (error) {
-            console.error("Error al crear la lista de correos del cliente: ", error)
-            return res.status(500).json({ message: "Error al crear la lista de correos del cliente" })
+            console.error("Error al agregar correo del cliente: ", error);
+            return res.status(500).json({ message: "Error al agregar correo del cliente" });
         }
-    }
+    };
+
+    // get emails list by client ID
+    static getClientEmails = async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+
+            const client = await Client.findByPk(id);
+            if (!client) {
+                return res.status(404).json({ message: "Cliente no encontrado" });
+            }
+
+            const emails = await EmailClient.findAll({
+                where: { client_id: id },
+                order: [["createdAt", "ASC"]]
+            });
+
+            return res.json(emails);
+
+        } catch (error) {
+            console.error("Error al obtener emails del cliente: ", error);
+            return res.status(500).json({ message: "Error al obtener emails del cliente" });
+        }
+    };
+
+    //delete email from client
+    static deleteEmailFromList = async (req: Request, res: Response) => {
+        try {
+
+            const { id } = req.params;
+            const emailDeleted = await EmailClient.destroy({
+                where: { id }
+            });
+
+            if (emailDeleted === 0) {
+                return res.status(404).json({ message: "Email no encontrado" });
+            }
+
+            return res.status(200).json({ message: "Email eliminado correctamente" });
+
+        } catch (error) {
+            console.error("Error al eliminar email: ", error);
+            return res.status(500).json({ message: "Error al eliminar email" });
+        }
+    };
+
 }

@@ -53,7 +53,7 @@ export class authController {
   static login = async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
-      // Validar campos obligatorios
+      // validate fields
       if (!email || !password) {
         res
           .status(400)
@@ -61,7 +61,7 @@ export class authController {
         return;
       }
       
-      // Buscar el usuario por email
+      // find user by email
       const user = await User.findOne({ where: { email } });
       if (!user) {
         res.status(401).json({ message: "Correo no registrado" });
@@ -70,7 +70,7 @@ export class authController {
 
       if (!user.isActive) return res.status(404).json({ message: "Usuario Inactivo" });
 
-      // Comparar contraseñas
+      // compare password
       const isPasswordValid = await bcrypt.compare(
         password,
         user.password
@@ -92,23 +92,23 @@ export class authController {
     try {
       const { email, newPassword } = req.body;
 
-      // Validar campos obligatorios
+      // validate required fields
       if (!email || !newPassword) {
         res.status(400).json({ message: "Correo y nueva contraseña son obligatorios" });
         return;
       }
 
-      // Buscar el usuario por email
+      // find user by email
       const user = await User.findOne({ where: { email } });
       if (!user) {
         res.status(404).json({ message: "Usuario no encontrado" });
         return;
       }
 
-      // Hash de la nueva contraseña
+      // Hash to new password
       const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
-      // Actualizar contraseña
+      // update password
       await user.update({ password: hashedNewPassword });
 
       res.status(200).json({ message: "Contraseña actualizada correctamente" });

@@ -99,8 +99,8 @@ export class quoteProductController {
 
   static sendQuoteByEmail = async (req: Request, res: Response) => {
     try {
-      const { id, client,email } = req.body
-      await SendEmailQuote({ id, client,email })
+      const { id, client, emails } = req.body
+      await SendEmailQuote({ id, client,emails })
       return res.status(200).json({ message: "Cotización Enviada" });
     } catch (error) {
       console.error(error);

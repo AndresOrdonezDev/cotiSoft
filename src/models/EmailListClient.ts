@@ -1,4 +1,4 @@
-import { Table, Column, Model, DataType, ForeignKey} from "sequelize-typescript";
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo} from "sequelize-typescript";
 import Client from "./ClientModel";
 
 @Table({
@@ -18,5 +18,10 @@ class EmailClient extends Model{
         allowNull:false
     })
     declare email: string
+
+    // inverse relationship
+    @BelongsTo(() => Client)
+    declare client: Client;
 }
+
 export default EmailClient

@@ -3,25 +3,25 @@ import { createTransport } from "../config/nodemailer";
 type SendEmailQuoteProps = {
   id:number,
   client:string,
-  email:string
+  emails:string[]
 }
 type SendEmailTokenProps = {
   email:string
   token:string,
 }
-export async function SendEmailQuote({ id, client,email }:SendEmailQuoteProps) {
+export async function SendEmailQuote({ id, client,emails }:SendEmailQuoteProps) {
   const transporter = createTransport(
     process.env.HOST_EMAIL,
     process.env.PORT_EMAIL,
     process.env.USER_EMAIL,
     process.env.PASS_EMAIL
   );
-  // send email when creating a new appointment
+  // send email
   await transporter.sendMail({
     from: "portafolio@ordonezandres.com", // sender address
-    to: `${email}`, // list of receivers
+    to: `${emails}`, // list of receivers
     subject: `COTIZACIÓN No. ${id}`, // Subject line
-    text: `REC-Soluciones SAS - Nueva Cotización`, // plain text body
+    text: `REC- INGENIERÍA - Nueva Cotización`, // plain text body
     html: `
       <p>Señor(a): ${client}, en atención a su solicitud ponemos a su disposición la siguiente cotización</p>
       <br/>
@@ -52,7 +52,8 @@ export async function SendEmailTokenUser({ email,token }:SendEmailTokenProps) {
     process.env.USER_EMAIL,
     process.env.PASS_EMAIL
   );
-  // send email when creating a new appointment
+  
+  // send email to recovery password
   await transporter.sendMail({
     from: "portafolio@ordonezandres.com", // sender address
     to: `${email}`, // list of receivers

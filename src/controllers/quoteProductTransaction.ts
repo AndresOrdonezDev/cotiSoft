@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { db } from "../config/db"; // importa tu instancia de sequelize
+import { db } from "../config/db";
 import Quote from "../models/QuoteModel";
 import QuoteProduct from "../models/QuoteProductModel";
 
@@ -9,13 +9,13 @@ export class quoteProductTransaction {
     try {
       const { client_id, notes, products, total } = req.body;
       const createdBy = req.user.username
-      // 1. create quote
+      // create quote
       const quote = await Quote.create(
         { client_id, notes, total, createdBy },
         { transaction: t }
       );
 
-      // 2. insert product into quote
+      // insert product into quote
       const quoteProductsData = products.map((p: any) => ({
         quote_id: quote.id,
         product_id: p.product_id,
@@ -45,25 +45,25 @@ export class quoteProductTransaction {
       const { id } = req.params; // ID de la cotización a editar
       const { client_id, notes, products, total, status } = req.body;
 
-      // 1️⃣ Verificar que la cotización exista
+      // if id quote exist
       const quote = await Quote.findByPk(id);
       if (!quote) {
         return res.status(404).json({ message: "Cotización no encontrada" });
       }
 
-      // 2️⃣ Actualizar la información principal de la cotización
+      // update main info quote
       await Quote.update(
         { client_id, notes, total, status },
         { where: { id }, transaction: t }
       );
 
-      // 3️⃣ Eliminar los productos actuales asociados a la cotización
+      // delete  quote products
       await QuoteProduct.destroy({
         where: { quote_id: id },
         transaction: t,
       });
 
-      // 4️⃣ Insertar los nuevos productos de la cotización
+      // insert new products
       const quoteProductsData = products.map((p: any) => ({
         quote_id: Number(id),
         product_id: p.product_id,
@@ -74,7 +74,7 @@ export class quoteProductTransaction {
 
       await QuoteProduct.bulkCreate(quoteProductsData, { transaction: t });
 
-      // 5️⃣ Confirmar la transacción
+      // confirm transaction
       await t.commit();
 
       return res
@@ -92,27 +92,27 @@ export class quoteProductTransaction {
   static deleteQuoteWithProducts = async (req: Request, res: Response) => {
   const t = await db.transaction();
   try {
-    const { id } = req.params; // ID de la cotización a eliminar
+    const { id } = req.params; // ID quote to delete
 
-    // 1️⃣ Verificar que la cotización exista
+    // if quote exist
     const quote = await Quote.findByPk(id);
     if (!quote) {
       return res.status(404).json({ message: "Cotización no encontrada" });
     }
 
-    // 2️⃣ Eliminar los productos asociados a la cotización
+    // delete products quote
     await QuoteProduct.destroy({
       where: { quote_id: id },
       transaction: t,
     });
 
-    // 3️⃣ Eliminar la cotización
+    // delete quote
     await Quote.destroy({
       where: { id },
       transaction: t,
     });
 
-    // 4️⃣ Confirmar la transacción
+    // confirm transaction
     await t.commit();
 
     return res.status(200).json({ message: "Cotización eliminada" });

@@ -1,4 +1,5 @@
-import { Table, Column, Model, DataType } from "sequelize-typescript";
+import { Table, Column, Model, DataType, HasMany } from "sequelize-typescript";
+import EmailClient from "./EmailListClient";
 
 @Table({
     tableName: "clients",
@@ -66,6 +67,10 @@ class Client extends Model {
         defaultValue: true,
     })
     declare isActive: boolean;
+    
+    //relationship between EmailClient
+    @HasMany(() => EmailClient)
+    declare emailList: EmailClient[];
 }
 
 export default Client;
