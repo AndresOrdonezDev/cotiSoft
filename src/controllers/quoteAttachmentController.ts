@@ -7,43 +7,43 @@ import { Op } from "sequelize";
 
 export class AttachmentController {
 
-    // Crear un adjunto
+    // create attachment
     static createAttachment = async (req: Request, res: Response) => {
         try {
             const { name, attachmentType } = req.body;
             const file = req.file as Express.Multer.File;
 
-            // Validar que se haya subido un archivo
+            // Verify that the file has been uploaded
             if (!file) {
                 return res.status(400).json({ message: "Debe enviar un archivo" });
             }
 
-            // Validar que se envíe el nombre
+            // there is no name
             if (!name) {
-                // Eliminar archivo subido si no se envía el nombre
+                // Delete uploaded file if the name is not sent
                 fs.unlinkSync(file.path);
                 return res.status(400).json({ message: "Debe especificar el nombre del adjunto" });
             }
 
-            // Validar que se envíe el tipo de adjunto
+            // Verify that the attachment type is being sent.
             if (!attachmentType) {
-                // Eliminar archivo subido si no se envía el tipo
+                // Delete uploaded file if the type is not sent
                 fs.unlinkSync(file.path);
                 return res.status(400).json({ message: "Debe especificar el tipo de adjunto" });
             }
 
-            // Validar que el tipo de adjunto sea válido (1, 2 o 3)
+            // Validate that the attachment type is valid (1, 2 or 3)
             const validTypes = [1, 2, 3];
             const typeNumber = parseInt(attachmentType);
             if (!validTypes.includes(typeNumber)) {
-                // Eliminar archivo subido si el tipo no es válido
+                // Delete uploaded file if the type is invalid
                 fs.unlinkSync(file.path);
                 return res.status(400).json({
                     message: "Tipo de adjunto inválido. Debe ser: 1 (Producto), 2 (Servicio) o 3 (Productos y Servicios)"
                 });
             }
 
-            // Crear registro de adjunto en la base de datos
+            // Create attachment in the database
             const attachment = await Attachment.create({
                 name,
                 attachmentType: typeNumber,
@@ -57,7 +57,7 @@ export class AttachmentController {
             });
 
         } catch (error) {
-            // Eliminar archivo subido en caso de error
+            // if error, Delete uploaded file
             const file = req.file as Express.Multer.File;
             if (file && fs.existsSync(file.path)) {
                 fs.unlinkSync(file.path);
@@ -122,47 +122,47 @@ export class AttachmentController {
         }
     };
 
-    // Actualizar un adjunto
+    // update attachment
     static updateAttachment = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
             const { name, attachmentType } = req.body;
             const file = req.file as Express.Multer.File;
 
-            // Buscar el adjunto
+            // search attach
             const attachment = await Attachment.findByPk(id);
 
             if (!attachment) {
-                // Eliminar archivo subido si el adjunto no existe
+                // delete file if there is no attachment
                 if (file && fs.existsSync(file.path)) {
                     fs.unlinkSync(file.path);
                 }
                 return res.status(404).json({ message: "Adjunto no encontrado" });
             }
 
-            // Validar que se envíe el nombre
+            // validate if there is name
             if (!name) {
-                // Eliminar archivo subido si no se envía el nombre
+                // delete attachment if no exist name
                 if (file && fs.existsSync(file.path)) {
                     fs.unlinkSync(file.path);
                 }
                 return res.status(400).json({ message: "Debe especificar el nombre del adjunto" });
             }
 
-            // Validar que se envíe el tipo de adjunto
+            // validate attachment type
             if (!attachmentType) {
-                // Eliminar archivo subido si no se envía el tipo
+                
                 if (file && fs.existsSync(file.path)) {
                     fs.unlinkSync(file.path);
                 }
                 return res.status(400).json({ message: "Debe especificar el tipo de adjunto" });
             }
 
-            // Validar que el tipo de adjunto sea válido (1, 2 o 3)
+    
             const validTypes = [1, 2, 3];
             const typeNumber = parseInt(attachmentType);
             if (!validTypes.includes(typeNumber)) {
-                // Eliminar archivo subido si el tipo no es válido
+               
                 if (file && fs.existsSync(file.path)) {
                     fs.unlinkSync(file.path);
                 }
@@ -171,23 +171,23 @@ export class AttachmentController {
                 });
             }
 
-            // Actualizar campos
+            // update fields
             attachment.name = name;
             attachment.attachmentType = typeNumber;
 
-            // Si se subió un nuevo archivo, eliminar el anterior y actualizar
+            // if file uploaded, delete prev file
             if (file) {
-                // Eliminar archivo anterior
+                
                 const oldFilePath = path.join(__dirname, "../public", attachment.url);
                 if (fs.existsSync(oldFilePath)) {
                     fs.unlinkSync(oldFilePath);
                 }
 
-                // Actualizar URL con el nuevo archivo
+                // update url file
                 attachment.url = `/attachment/${file.filename}`;
             }
 
-            // Guardar cambios
+            // save changes
             await attachment.save();
 
             return res.status(200).json({
@@ -196,7 +196,7 @@ export class AttachmentController {
             });
 
         } catch (error) {
-            // Eliminar archivo subido en caso de error
+            // if error, delete file uploaded
             const file = req.file as Express.Multer.File;
             if (file && fs.existsSync(file.path)) {
                 fs.unlinkSync(file.path);
@@ -218,7 +218,7 @@ export class AttachmentController {
                 return res.status(404).json({ message: "Adjunto no encontrado" });
             }
 
-            // Cambiar estado
+            // change status
             attachment.isActive = !attachment.isActive;
             await attachment.save();
 

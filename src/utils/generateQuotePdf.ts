@@ -32,10 +32,10 @@ interface QuoteData {
 
 type GeneratePdfQuoteProps = {
   quote: QuoteData;
-  res: Response;
+  res?: Response;
 };
 
-export const generateQuotePdf = async ({ quote, res }: GeneratePdfQuoteProps) => {
+export const generateQuotePdf = async ({ quote, res }: GeneratePdfQuoteProps): Promise<Buffer | void> => {
   // Configurar fuentes estándar de PDF
   const fonts = {
     Helvetica: {
@@ -346,12 +346,35 @@ export const generateQuotePdf = async ({ quote, res }: GeneratePdfQuoteProps) =>
   // Generar el PDF
   const pdfDoc = printer.createPdfKitDocument(docDefinition);
 
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=cotizacion_${quote.id}.pdf`
-  );
+  // Si se proporciona res, enviar como respuesta HTTP
+  if (res) {
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=cotizacion_${quote.id}.pdf`
+    );
 
-  pdfDoc.pipe(res);
-  pdfDoc.end();
+    pdfDoc.pipe(res);
+    pdfDoc.end();
+    return;
+  }
+
+  // Si no se proporciona res, retornar el buffer del PDF
+  return new Promise<Buffer>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+
+    pdfDoc.on('data', (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+
+    pdfDoc.on('end', () => {
+      resolve(Buffer.concat(chunks));
+    });
+
+    pdfDoc.on('error', (err: Error) => {
+      reject(err);
+    });
+
+    pdfDoc.end();
+  });
 };
