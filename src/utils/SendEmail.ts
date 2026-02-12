@@ -1,22 +1,24 @@
 import { createTransport } from "../config/nodemailer";
 
 type SendEmailQuoteProps = {
-  id:number,
-  client:string,
-  emails:string[],
+  id: number,
+  client: string,
+  emails: string[],
   pdfBuffer: Buffer,
   attachments?: Array<{buffer: Buffer, filename: string}> | null
 }
+
 type SendEmailTokenProps = {
-  email:string
-  token:string,
+  email: string
+  token: string,
 }
-export async function SendEmailQuote({ id, client, emails, pdfBuffer, attachments: additionalAttachments }:SendEmailQuoteProps) {
+
+export async function SendEmailQuote({ id, client, emails, pdfBuffer, attachments: additionalAttachments }: SendEmailQuoteProps) {
   const transporter = createTransport(
-    process.env.HOST_EMAIL,
-    process.env.PORT_EMAIL,
-    process.env.USER_EMAIL,
-    process.env.PASS_EMAIL
+    process.env.HOST_EMAIL as string,
+    parseInt(process.env.PORT_EMAIL as string), // ← Cambiado: necesita ser number, no string
+    process.env.USER_EMAIL as string,
+    process.env.PASS_EMAIL as string
   );
 
   // Construir array de adjuntos
@@ -79,12 +81,13 @@ export async function SendEmailQuote({ id, client, emails, pdfBuffer, attachment
     attachments
   });
 }
-export async function SendEmailTokenUser({ email,token }:SendEmailTokenProps) {
+
+export async function SendEmailTokenUser({ email, token }: SendEmailTokenProps) {
   const transporter = createTransport(
-    process.env.HOST_EMAIL,
-    process.env.PORT_EMAIL,
-    process.env.USER_EMAIL,
-    process.env.PASS_EMAIL
+    process.env.HOST_EMAIL as string,           // ← Añadido as string
+    parseInt(process.env.PORT_EMAIL as string), // ← Añadido as string y parseInt
+    process.env.USER_EMAIL as string,           // ← Añadido as string
+    process.env.PASS_EMAIL as string            // ← Añadido as string
   );
   
   // send email to recovery password

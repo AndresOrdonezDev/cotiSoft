@@ -71,6 +71,7 @@ class Client extends Model {
     //relationship between EmailClient
     @HasMany(() => EmailClient)
     declare emailList: EmailClient[];
+    
 }
 
 export default Client;

@@ -60,7 +60,7 @@ export class authController {
           .json({ message: "Correo y contraseña son obligatorios" });
         return;
       }
-      
+
       // find user by email
       const user = await User.findOne({ where: { email } });
       if (!user) {
@@ -162,11 +162,15 @@ export class authController {
   };
   static logout = async (req: Request, res: Response) => {
     try {
-      req.user.email = "",
+      if (req.user) {
+        req.user.email = "",
         req.user.id = 0
-      req.user.username = ""
-      res.status(200).json({ message: "Salida segura" });
-      return
+        req.user.username = ""
+        res.status(200).json({ message: "Salida segura" });
+        return
+      }else{
+        res.status(500).json({ message: "Error al Cerrar Sesión" });
+      }
     } catch (error) {
       console.error("Error logout", error);
       res.status(500).json({ message: "Error al Cerrar Sesión" });
@@ -196,7 +200,7 @@ export class authController {
     try {
       const { id } = req.params
       const user = await User.findByPk(id, {
-        attributes: ["id", "username", "email", "isAdmin","isActive"]
+        attributes: ["id", "username", "email", "isAdmin", "isActive"]
       })
       if (!user) return res.status(404).json({ message: "Usuario no encontrado" })
       return res.json(user);

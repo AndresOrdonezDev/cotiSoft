@@ -48,6 +48,9 @@ export const generateQuotePdf = async ({ quote, res }: GeneratePdfQuoteProps): P
 
   const printer = new PdfPrinter(fonts);
 
+  // Manejar la fecha (si no existe, usar fecha actual)
+  const quoteDate = quote.createdAt ? new Date(quote.createdAt) : new Date();
+
   // Convertir imagen a base64 (opcional)
   const logoPath = path.join(__dirname, "../public/logo-rec.png");
   let logoBase64 = "";
@@ -73,7 +76,7 @@ export const generateQuotePdf = async ({ quote, res }: GeneratePdfQuoteProps): P
       columns: [
         { text: "", width: "*" },
         {
-          text: `Fecha: ${new Date(quote.createdAt).toLocaleDateString("es-CO")}`,
+          text: `Fecha: ${quoteDate.toLocaleDateString("es-CO")}`,
           alignment: "right",
           fontSize: 10,
         },

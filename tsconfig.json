@@ -1,17 +1,19 @@
 {
-    "compilerOptions": {
-        "outDir": "./dist",
-        "rootDir": "./src",
-        "lib": ["ESNext"],
-        "target": "esnext",
-        "moduleResolution": "nodenext",
-        "module": "nodenext",
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "strict": false,
-        "sourceMap": true,
-        "esModuleInterop": true,
-        "declaration": true
-    },
-    "include": ["src/**/*.ts"] 
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020", "DOM"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true,        // ← AÑADE ESTA LÍNEA
+    "emitDecoratorMetadata": true          // ← AÑADE ESTA LÍNEA
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

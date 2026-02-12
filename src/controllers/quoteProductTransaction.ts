@@ -7,6 +7,7 @@ export class quoteProductTransaction {
   static createQuoteWithProducts = async (req: Request, res: Response) => {
     const t = await db.transaction();
     try {
+      if(!req.user) return
       const { client_id, notes, products, total } = req.body;
       const createdBy = req.user.username
       // create quote
