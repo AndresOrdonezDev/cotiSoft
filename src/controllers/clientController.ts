@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Op } from "sequelize";
+import { json, Op } from "sequelize";
 import Client from "../models/ClientModel";
 import EmailClient from "../models/EmailListClient";
 
@@ -148,7 +148,7 @@ export class clientController {
                 order: [["createdAt", "DESC"]],
             })
             if (!client) return res.status(400).json({ message: "Cliente no encontrado" })
-
+            if(!client.isActive) return res.status(409).json({message:"El cliente se encuentra inactivo"})
             return res.json(client)
         } catch (error) {
             console.error("Error al consultar el cliente: ", error)

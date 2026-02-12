@@ -68,7 +68,7 @@ export class AttachmentController {
         }
     };
 
-    // Listar todos los adjuntos con filtros
+    // list all attachments withe search params
     static getAttachments = async (req: Request, res: Response) => {
         try {
             const { isActive, search } = req.query;
@@ -103,7 +103,7 @@ export class AttachmentController {
         }
     };
 
-    // Obtener un adjunto por ID
+    // get attachment by ID
     static getAttachmentById = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
@@ -223,7 +223,7 @@ export class AttachmentController {
             await attachment.save();
 
             return res.status(200).json({
-                message: `Adjunto ${attachment.isActive ? 'activado' : 'desactivado'} correctamente`
+                message: `Adjunto ${attachment.isActive ? 'activado' : 'desactivado'}`
             });
 
         } catch (error) {
@@ -232,28 +232,28 @@ export class AttachmentController {
         }
     };
 
-    // Eliminar adjunto (mantengo esta función por si la necesitan)
+    // delete attachment
     static deleteAttachment = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
 
-            // Buscar el adjunto para obtener la ruta del archivo
+            // search attachment to get the path
             const attachment = await Attachment.findByPk(id);
 
             if (!attachment) {
                 return res.status(404).json({ message: "Adjunto no encontrado" });
             }
 
-            // Eliminar el archivo físico del servidor
+            // Delete file on server
             const filePath = path.join(__dirname, "../public", attachment.url);
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
             }
 
-            // Eliminar el registro de la base de datos
+            // Delete record on db
             await attachment.destroy();
 
-            return res.status(200).json({ message: "Archivo adjunto eliminado correctamente" });
+            return res.status(200).json({ message: "Archivo adjunto eliminado" });
 
         } catch (error) {
             console.error("Error al eliminar adjunto:", error);

@@ -104,7 +104,7 @@ export class quoteProductController {
     try {
       const { id, client, emails, attachmentType } = req.body;
 
-      // Obtener la cotización de la base de datos
+      // get quote from db
       const quote = await Quote.findByPk(id, {
         attributes: ["id", "total", "status", "notes", "createdAt", "createdBy"],
         include: [
@@ -121,19 +121,18 @@ export class quoteProductController {
         return res.status(404).json({ message: "Cotización no encontrada" });
       }
 
-      // Generar el PDF de la cotización como buffer
+      // generate quote pdf as buffer
       const pdfBuffer = await generateQuotePdf({ quote });
 
       if (!pdfBuffer) {
         return res.status(500).json({ message: "Error al generar el PDF" });
       }
 
-      // Buscar el attachment por tipo si se proporciona attachmentType
-      let attachmentBuffer: Buffer | null = null;
-      let attachmentFilename: string | null = null;
+      //search all attachments by attachmentType
+      let attachmentsToSend: Array<{buffer: Buffer, filename: string}> = [];
 
       if (attachmentType) {
-        const attachment = await Attachment.findOne({
+        const attachments = await Attachment.findAll({
           where: {
             attachmentType: parseInt(attachmentType),
             isActive: true
@@ -141,17 +140,23 @@ export class quoteProductController {
           order: [["createdAt", "DESC"]]
         });
 
-        if (attachment) {
-          // Construir la ruta completa del archivo
+        // Procesar cada adjunto encontrado
+        for (const attachment of attachments) {
+          // build path file
           const attachmentPath = path.join(__dirname, "../public", attachment.url);
 
           // Verificar si el archivo existe
           if (fs.existsSync(attachmentPath)) {
-            // Leer el archivo como buffer
-            attachmentBuffer = fs.readFileSync(attachmentPath);
-            attachmentFilename = path.basename(attachment.url);
+            // read file as buffer
+            const attachmentBuffer = fs.readFileSync(attachmentPath);
+            const attachmentFilename = path.basename(attachment.url);
+
+            attachmentsToSend.push({
+              buffer: attachmentBuffer,
+              filename: attachmentFilename
+            });
           } else {
-            console.warn(`Archivo de attachment no encontrado: ${attachmentPath}`);
+            console.warn(`Archivo no encontrado en: ${attachmentPath}`);
           }
         }
       }
@@ -162,8 +167,7 @@ export class quoteProductController {
         client,
         emails,
         pdfBuffer,
-        attachmentBuffer,
-        attachmentFilename
+        attachments: attachmentsToSend.length > 0 ? attachmentsToSend : null
       });
 
       return res.status(200).json({ message: "Cotización Enviada" });

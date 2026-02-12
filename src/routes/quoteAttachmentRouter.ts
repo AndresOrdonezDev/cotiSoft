@@ -4,22 +4,22 @@ import { upload } from "../config/multerConfig";
 
 const router = Router();
 
-// Listar todos los adjuntos con filtros (isActive, search)
+// get all attachments with search params (isActive, search)
 router.get("/", AttachmentController.getAttachments);
 
-// Obtener un adjunto por ID
+// get attachment by ID
 router.get("/:id", AttachmentController.getAttachmentById);
 
-// Crear un adjunto (con archivo)
+// Create new attachment
 router.post("/", upload.single("file"), AttachmentController.createAttachment);
 
-// Actualizar un adjunto (archivo opcional)
+// Update attachment
 router.put("/:id", upload.single("file"), AttachmentController.updateAttachment);
 
-// Toggle isActive (activar/desactivar)
+// Toggle isActive (active/inactive)
 router.post("/:id", AttachmentController.toggleAttachmentActive);
 
-// Eliminar un adjunto (opcional - si quieren eliminar físicamente)
+// delete attachment by id
 router.delete("/:id", AttachmentController.deleteAttachment);
 
 export default router;
