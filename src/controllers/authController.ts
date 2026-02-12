@@ -133,7 +133,7 @@ export class authController {
           .status(400)
           .json({ message: "El correo y el nombre de usuario son obligatorios" });
       }
-      const user = await User.findByPk(id);
+      const user = await User.findByPk(id as string);
       if (!user) {
         return res.status(404).json({ message: "Usuario no encontrado" });
       }
@@ -199,7 +199,7 @@ export class authController {
   static getUser = async (req: Request, res: Response) => {
     try {
       const { id } = req.params
-      const user = await User.findByPk(id, {
+      const user = await User.findByPk(id as string, {
         attributes: ["id", "username", "email", "isAdmin", "isActive"]
       })
       if (!user) return res.status(404).json({ message: "Usuario no encontrado" })
@@ -213,7 +213,7 @@ export class authController {
   static toggleUserStatus = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const user = await User.findByPk(id);
+      const user = await User.findByPk(id as string);
       if (!user) {
         return res.status(404).json({ message: "Usuario no encontrado" });
       }
@@ -280,4 +280,3 @@ export class authController {
     }
   };
 }
-

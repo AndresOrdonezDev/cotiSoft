@@ -43,7 +43,7 @@ export class productController {
     static getProductById = async (req: Request, res: Response) => {
         try {
             const { id } = req.params
-            const productFound = await Product.findByPk(id)
+            const productFound = await Product.findByPk(id as string)
             res.json(productFound);
         } catch (error) {
             console.error("Error to get products:", error);
@@ -73,7 +73,7 @@ export class productController {
     static toggleProductStatus = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            const product = await Product.findByPk(id);
+            const product = await Product.findByPk(id as string);
             if (!product) {
                 return res.status(404).json({ message: "Producto no encontrado" });
             }

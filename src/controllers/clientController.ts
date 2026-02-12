@@ -62,7 +62,7 @@ export class clientController {
     static getClientById = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            const clientFound = await Client.findByPk(id, {
+            const clientFound = await Client.findByPk(id as string, {
                 include: [
                     {
                         model: EmailClient,
@@ -119,7 +119,7 @@ export class clientController {
     static toggleClientStatus = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            const client = await Client.findByPk(id);
+            const client = await Client.findByPk(id as string);
             if (!client) {
                 return res.status(404).json({ message: "Cliente no encontrado" });
             }
@@ -161,7 +161,7 @@ export class clientController {
             const { id } = req.params;
             const { email } = req.body;
             // if client exist  
-            const client = await Client.findByPk(id);
+            const client = await Client.findByPk(id as string);
             if (!client) {
                 return res.status(404).json({ message: "Cliente no encontrado" });
             }
@@ -203,7 +203,7 @@ export class clientController {
         try {
             const { id } = req.params;
 
-            const client = await Client.findByPk(id);
+            const client = await Client.findByPk(id as string);
             if (!client) {
                 return res.status(404).json({ message: "Cliente no encontrado" });
             }
@@ -221,7 +221,7 @@ export class clientController {
         }
     };
 
-    //delete email from client
+    //delete email from list
     static deleteEmailFromList = async (req: Request, res: Response) => {
         try {
 

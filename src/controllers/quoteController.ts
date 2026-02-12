@@ -60,7 +60,7 @@ export class quoteController {
   static getQuoteById = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const quote = await Quote.findByPk(id);
+      const quote = await Quote.findByPk(id as string);
       if (!quote) {
         return res.status(404).json({ message: "Cotización no encontrada" });
       }

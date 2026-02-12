@@ -15,7 +15,7 @@ export class quoteProductController {
     try {
       const { id } = req.params;
 
-      const quote = await Quote.findByPk(id, {
+      const quote = await Quote.findByPk(id as string, {
         attributes: ["id", "total", "status", "notes", "createdAt", "updatedAt"],
         include: [
           {
@@ -76,7 +76,7 @@ export class quoteProductController {
     try {
       const { id } = req.params;
 
-      const quote = await Quote.findByPk(id, {
+      const quote = await Quote.findByPk(id as string, {
         attributes: ["id", "total", "status", "notes", "createdAt","createdBy"],
         include: [
           { model: Client, attributes: ["fullname", "idNumber", "email", "contact", "companyName"] },

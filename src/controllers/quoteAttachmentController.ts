@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import Attachment from "../models/QuoteAttachmentModel";
-import { db } from "../config/db";
 import fs from "fs";
 import path from "path";
 import { Op } from "sequelize";
@@ -108,7 +107,7 @@ export class AttachmentController {
         try {
             const { id } = req.params;
 
-            const attachment = await Attachment.findByPk(id);
+            const attachment = await Attachment.findByPk(id as string);
 
             if (!attachment) {
                 return res.status(404).json({ message: "Adjunto no encontrado" });
@@ -130,7 +129,7 @@ export class AttachmentController {
             const file = req.file as Express.Multer.File;
 
             // search attach
-            const attachment = await Attachment.findByPk(id);
+            const attachment = await Attachment.findByPk(id as string);
 
             if (!attachment) {
                 // delete file if there is no attachment
@@ -212,7 +211,7 @@ export class AttachmentController {
         try {
             const { id } = req.params;
 
-            const attachment = await Attachment.findByPk(id);
+            const attachment = await Attachment.findByPk(id as string);
 
             if (!attachment) {
                 return res.status(404).json({ message: "Adjunto no encontrado" });
@@ -238,7 +237,7 @@ export class AttachmentController {
             const { id } = req.params;
 
             // search attachment to get the path
-            const attachment = await Attachment.findByPk(id);
+            const attachment = await Attachment.findByPk(id as string);
 
             if (!attachment) {
                 return res.status(404).json({ message: "Adjunto no encontrado" });
