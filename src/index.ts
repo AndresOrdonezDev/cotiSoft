@@ -1,6 +1,6 @@
 import server from './server'
 import colors from 'colors'
-const port = process.env.PORT || 4000
-server.listen(port, () => {
-    console.log(colors.cyan(`Server running on port ${port}`))
+const port = process.env.PORT  || 4000
+server.listen(port,()=>{
+    console.log(colors.cyan(`server running on port port ${port}`))
 })
