@@ -47,7 +47,7 @@ export class quoteProductTransaction {
       const { client_id, notes, products, total, status } = req.body;
 
       // if id quote exist
-      const quote = await Quote.findByPk(id);
+      const quote = await Quote.findByPk(id as string);
       if (!quote) {
         return res.status(404).json({ message: "Cotización no encontrada" });
       }
@@ -96,7 +96,7 @@ export class quoteProductTransaction {
     const { id } = req.params; // ID quote to delete
 
     // if quote exist
-    const quote = await Quote.findByPk(id);
+    const quote = await Quote.findByPk(id as string);
     if (!quote) {
       return res.status(404).json({ message: "Cotización no encontrada" });
     }
