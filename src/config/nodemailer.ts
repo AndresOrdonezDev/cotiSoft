@@ -9,7 +9,6 @@ export function createTransport(host:string,port:number,user:string,pass:string)
         user,
         pass
     },
-
     tls:{
       rejectUnauthorized:false
     }
