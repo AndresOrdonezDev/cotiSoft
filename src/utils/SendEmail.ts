@@ -1,4 +1,8 @@
-import { createTransport } from "../config/nodemailer";
+import { Resend } from 'resend';
+import fs from 'fs';
+import path from 'path';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 type SendEmailQuoteProps = {
   id: number,
@@ -14,23 +18,20 @@ type SendEmailTokenProps = {
 }
 
 export async function SendEmailQuote({ id, client, emails, pdfBuffer, attachments: additionalAttachments }: SendEmailQuoteProps) {
-  const transporter = createTransport(
-    process.env.HOST_EMAIL as string,
-    parseInt(process.env.PORT_EMAIL as string), // ← Cambiado: necesita ser number, no string
-    process.env.USER_EMAIL as string,
-    process.env.PASS_EMAIL as string
-  );
+  // Leer logo y convertir a base64 data URI (Resend no soporta cid)
+  const logoPath = path.join(process.cwd(), 'src', 'public', 'rec-mail.png');
+  const logoBase64 = fs.readFileSync(logoPath).toString('base64');
+  const logoDataUri = `data:image/png;base64,${logoBase64}`;
 
-  // Construir array de adjuntos
-  const attachments: any[] = [];
+  // Construir array de adjuntos para Resend
+  const attachments: Array<{ filename: string; content: Buffer }> = [];
 
-  // Agregar todos los attachments adicionales primero si existen (deben ir de primero)
+  // Agregar attachments adicionales primero si existen
   if (additionalAttachments && additionalAttachments.length > 0) {
     additionalAttachments.forEach(att => {
       attachments.push({
         filename: att.filename,
         content: att.buffer,
-        contentType: 'application/pdf'
       });
     });
   }
@@ -39,25 +40,15 @@ export async function SendEmailQuote({ id, client, emails, pdfBuffer, attachment
   attachments.push({
     filename: `cotizacion_${id}.pdf`,
     content: pdfBuffer,
-    contentType: 'application/pdf'
   });
 
-  // Agregar el logo como imagen embebida
-  attachments.push({
-    filename: 'rec-mail.png',
-    path: process.cwd() + '/src/public/rec-mail.png',
-    cid: 'logo-rec'
-  });
-
-  // send email
-  await transporter.sendMail({
-    from: "portafolio@ordonezandres.com", // sender address
-    to: `${emails}`, // list of receivers
-    subject: `COTIZACIÓN No. ${id}`, // Subject line
-    text: `REC- INGENIERIA - Nueva Cotización`, // plain text body
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL as string,
+    to: emails,
+    subject: `COTIZACIÓN No. ${id}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px;">
-        <img src="cid:logo-rec" alt="REC Ingeniería" style="max-width: 200px; margin-bottom: 20px; display: block;" />
+        <img src="${logoDataUri}" alt="REC Ingeniería" style="max-width: 200px; margin-bottom: 20px; display: block;" />
 
         <p style="font-size: 20px; color: #0066cc; font-style: italic; font-weight: bold; margin: 20px 0 10px 0; text-align: left;">
           CAMILA ANDREA CHAMORRO GUERRERO
@@ -83,26 +74,17 @@ export async function SendEmailQuote({ id, client, emails, pdfBuffer, attachment
 }
 
 export async function SendEmailTokenUser({ email, token }: SendEmailTokenProps) {
-  const transporter = createTransport(
-    process.env.HOST_EMAIL as string,           // ← Añadido as string
-    parseInt(process.env.PORT_EMAIL as string), // ← Añadido as string y parseInt
-    process.env.USER_EMAIL as string,           // ← Añadido as string
-    process.env.PASS_EMAIL as string            // ← Añadido as string
-  );
-  
-  // send email to recovery password
-  await transporter.sendMail({
-    from: "portafolio@ordonezandres.com", // sender address
-    to: `${email}`, // list of receivers
-    subject: `Recuperación de contraseña`, // Subject line
-    text: `Recuperar Contraseña`, // plain text body
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL as string,
+    to: [email],
+    subject: `Recuperación de contraseña`,
     html: `
       <p>Has solicitado la recuperación de contraseña para el correo ${email}</p>
       <p>Recuerda que el token es de un solo uso, si lo pierdes vuelve a generarlo</p>
       <br/>
-      <a 
+      <a
         href='${process.env.FRONTEND_URL}/forgot-password/${email}/${token}'
-        target="_blank" 
+        target="_blank"
         style="
           display: inline-block;
           background-color: #0d9488;
@@ -113,9 +95,9 @@ export async function SendEmailTokenUser({ email, token }: SendEmailTokenProps) 
           font-family: Arial, sans-serif;
           font-size: 14px;
           font-weight: bold;"
-    >
-    Cambiar Contraseña
-    </a>
+      >
+      Cambiar Contraseña
+      </a>
       `,
   });
 }
